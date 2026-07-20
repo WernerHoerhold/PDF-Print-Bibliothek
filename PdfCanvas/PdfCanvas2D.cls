@@ -13,404 +13,338 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = True
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfCanvas2D
-' Version....: 1.0
+'===============================================================
+' KLASSE......: PdfCanvas2D
+' KATEGORIE...: A - HAUPTKLASSE (Zeichenfläche)
+' VERSION.....: 1.0
 '
-' Aufgabe:
-' Sammelt alle Zeichenbefehle einer Seite.
-'=========================================================
+' BESCHREIBUNG:
+' Die 2D-Zeichenfläche einer PDF-Seite. Sie sammelt alle
+' Zeichenbefehle (Linien, Rechtecke, Text, Bilder, etc.)
+' und speichert den aktuellen Zeichenzustand (Stift, Pinsel,
+' Schrift).
+'
+' VERWENDUNG:
+'   Dim Doc As New PdfDocument
+'   Dim Page As PdfPage
+'   Set Page = Doc.AddPage()
+'   Page.Canvas.DrawLine 50, 50, 200, 200
+'   Page.Canvas.DrawText 100, 100, "Hallo!"
+'   Page.Canvas.DrawRectangle 50, 50, 100, 50
+'
+' ABHÄNGIGKEITEN: PdfGraphicsState, alle PdfCmd*-Klassen
+' AUTOR: Kapp Niles GmbH & Co, KG
+'===============================================================
 
 Private mCommands As Collection
 Private mState As PdfGraphicsState
 
+'---------------------------------------------------------------
+' EVENT: Class_Initialize
+' BESCHREIBUNG: Initialisiert die Canvas mit leerer
+'               Befehls-Sammlung und Standard-Zeichenzustand
+'---------------------------------------------------------------
 Private Sub Class_Initialize()
-
     Set mCommands = New Collection
     Set mState = New PdfGraphicsState
-    
 End Sub
 
-'---------------------------------------------------------
-' Linie
-'---------------------------------------------------------
-Public Sub DrawLine(ByVal X1 As Double, _
-                    ByVal Y1 As Double, _
-                    ByVal X2 As Double, _
-                    ByVal Y2 As Double)
-
+'---------------------------------------------------------------
+' METHODE: DrawLine
+' PARAMETER:
+'   - X1, Y1 (Double): Startpunkt
+'   - X2, Y2 (Double): Endpunkt
+' BESCHREIBUNG: Zeichnet eine Linie vom Start- zum Endpunkt
+'               unter Verwendung der aktuellen Stift-Eigenschaften
+'---------------------------------------------------------------
+Public Sub DrawLine(ByVal X1 As Double, ByVal Y1 As Double, _
+                    ByVal X2 As Double, ByVal Y2 As Double)
     Dim Cmd As PdfCmdLine
-
     Set Cmd = New PdfCmdLine
     Set Cmd.State = mState.Clone
-    
     Cmd.X1 = X1
     Cmd.Y1 = Y1
-
     Cmd.X2 = X2
     Cmd.Y2 = Y2
-
     mCommands.Add Cmd
-
 End Sub
 
-
-'---------------------------------------------------------
-' Anzahl der Befehle
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: CommandCount (READ-ONLY)
+' RÜCKGABE: Long - Anzahl der Zeichenbefehle
+'---------------------------------------------------------------
 Public Property Get CommandCount() As Long
-
     CommandCount = mCommands.Count
-
 End Property
 
-'---------------------------------------------------------
-' Zugriff auf einen Zeichenbefehl
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: Command(Index)
+' PARAMETER: Index (Long) - Index des Befehls (1-basiert)
+' RÜCKGABE: Object - Der Befehl an dieser Position
+'---------------------------------------------------------------
 Public Property Get Command(ByVal Index As Long) As Object
-
     Set Command = mCommands(Index)
-
 End Property
-'---------------------------------------------------------
-' Alle Zeichenbefehle
-'---------------------------------------------------------
+
+'---------------------------------------------------------------
+' PROPERTY: Commands (READ-ONLY / INTERNAL)
+' RÜCKGABE: Collection - Alle Zeichenbefehle
+'---------------------------------------------------------------
 Public Property Get Commands() As Collection
-
     Set Commands = mCommands
-
 End Property
 
-'---------------------------------------------------------
-' Text zeichnen
-'---------------------------------------------------------
-Public Sub DrawText( _
-        ByVal X As Double, _
-        ByVal Y As Double, _
+'---------------------------------------------------------------
+' METHODE: DrawText
+' PARAMETER:
+'   - X, Y (Double): Position des Texts
+'   - Text (String): Der zu zeichnende Text
+' BESCHREIBUNG: Zeichnet Text an der angegebenen Position
+'               unter Verwendung der aktuellen Font-Eigenschaften
+'---------------------------------------------------------------
+Public Sub DrawText(ByVal X As Double, ByVal Y As Double, _
         ByVal Text As String)
-
     Dim Cmd As PdfCmdText
-
     Set Cmd = New PdfCmdText
     Set Cmd.State = mState.Clone
-
     Cmd.X = X
     Cmd.Y = Y
     Cmd.Text = Text
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Aktueller Zeichenzustand
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: State (READ-ONLY / INTERNAL)
+' RÜCKGABE: PdfGraphicsState - Der aktuelle Zeichenzustand
+'---------------------------------------------------------------
 Friend Property Get State() As PdfGraphicsState
-
     Set State = mState
-
 End Property
 
-'---------------------------------------------------------
-' Zeichenstift
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: Pen
+' RÜCKGABE: PdfPen - Der aktuelle Zeichenstift
+' BESCHREIBUNG: Liefert den Stift für Linieneigenschaften
+'               (Farbe, Dicke, Linientyp, etc.)
+'---------------------------------------------------------------
 Public Property Get Pen() As PdfPen
-
     Set Pen = mState.Pen
-
 End Property
 
-'---------------------------------------------------------
-' Aktueller Textzustand
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: Text (READ-ONLY / INTERNAL)
+' RÜCKGABE: PdfTextState - Der aktuelle Text-Zustand
+'---------------------------------------------------------------
 Friend Property Get Text() As PdfTextState
-
     Set Text = mState.Text
-
 End Property
 
-'---------------------------------------------------------
-' Aktuelle Schrift
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: Font
+' RÜCKGABE: PdfFont - Die aktuelle Schrift
+' BESCHREIBUNG: Liefert oder setzt die Schrift für
+'               Text-Zeichenbefehle
+'---------------------------------------------------------------
 Public Property Get Font() As PdfFont
-
     Set Font = mState.Text.Font
-
 End Property
 
-'---------------------------------------------------------
-' Aktuelle Schrift
-'---------------------------------------------------------
 Public Property Set Font(ByVal Value As PdfFont)
-
     Set mState.Text.Font = Value
-
 End Property
 
-'---------------------------------------------------------
-' F�llpinsel
-'---------------------------------------------------------
+'---------------------------------------------------------------
+' PROPERTY: Brush
+' RÜCKGABE: PdfBrush - Der aktuelle Füllpinsel
+' BESCHREIBUNG: Liefert den Pinsel für Füllfarben
+'---------------------------------------------------------------
 Public Property Get Brush() As PdfBrush
-
     Set Brush = mState.Brush
-
 End Property
 
-'---------------------------------------------------------
-' Rechteck zeichnen
-'---------------------------------------------------------
-Public Sub DrawRectangle( _
-        ByVal X As Double, _
-        ByVal Y As Double, _
-        ByVal Width As Double, _
-        ByVal Height As Double)
-
+'---------------------------------------------------------------
+' METHODE: DrawRectangle
+' PARAMETER: X, Y (Double), Width, Height (Double)
+' BESCHREIBUNG: Zeichnet ein leeres Rechteck (nur Umriss)
+'---------------------------------------------------------------
+Public Sub DrawRectangle(ByVal X As Double, ByVal Y As Double, _
+        ByVal Width As Double, ByVal Height As Double)
     Dim Cmd As PdfCmdRectangle
-
     Set Cmd = New PdfCmdRectangle
-
     Set Cmd.State = mState.Clone
-
     Cmd.X = X
     Cmd.Y = Y
-
     Cmd.Width = Width
     Cmd.Height = Height
-
     Cmd.Stroke = True
     Cmd.Fill = False
-
     mCommands.Add Cmd
-
 End Sub
-'---------------------------------------------------------
-' Rechteck f�llen
-'---------------------------------------------------------
-Public Sub FillRectangle( _
-        ByVal X As Double, _
-        ByVal Y As Double, _
-        ByVal Width As Double, _
-        ByVal Height As Double)
 
+'---------------------------------------------------------------
+' METHODE: FillRectangle
+' PARAMETER: X, Y (Double), Width, Height (Double)
+' BESCHREIBUNG: Zeichnet ein gefülltes Rechteck
+'---------------------------------------------------------------
+Public Sub FillRectangle(ByVal X As Double, ByVal Y As Double, _
+        ByVal Width As Double, ByVal Height As Double)
     Dim Cmd As PdfCmdRectangle
-
     Set Cmd = New PdfCmdRectangle
-
     Set Cmd.State = mState.Clone
-
     Cmd.X = X
     Cmd.Y = Y
-
     Cmd.Width = Width
     Cmd.Height = Height
-
     Cmd.Stroke = False
     Cmd.Fill = True
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Ellipse zeichnen
-'---------------------------------------------------------
-Public Sub DrawEllipse( _
-        ByVal X As Double, _
-        ByVal Y As Double, _
-        ByVal Width As Double, _
-        ByVal Height As Double)
-
+'---------------------------------------------------------------
+' METHODE: DrawEllipse
+' PARAMETER: X, Y (Double), Width, Height (Double)
+' BESCHREIBUNG: Zeichnet eine leere Ellipse (nur Umriss)
+'---------------------------------------------------------------
+Public Sub DrawEllipse(ByVal X As Double, ByVal Y As Double, _
+        ByVal Width As Double, ByVal Height As Double)
     Dim Cmd As PdfCmdEllipse
-
     Set Cmd = New PdfCmdEllipse
-
     Set Cmd.State = mState.Clone
-
     Cmd.X = X
     Cmd.Y = Y
-
     Cmd.Width = Width
     Cmd.Height = Height
-
     Cmd.Stroke = True
     Cmd.Fill = False
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Ellipse f�llen
-'---------------------------------------------------------
-Public Sub FillEllipse( _
-        ByVal X As Double, _
-        ByVal Y As Double, _
-        ByVal Width As Double, _
-        ByVal Height As Double)
-
+'---------------------------------------------------------------
+' METHODE: FillEllipse
+' PARAMETER: X, Y (Double), Width, Height (Double)
+' BESCHREIBUNG: Zeichnet eine gefüllte Ellipse
+'---------------------------------------------------------------
+Public Sub FillEllipse(ByVal X As Double, ByVal Y As Double, _
+        ByVal Width As Double, ByVal Height As Double)
     Dim Cmd As PdfCmdEllipse
-
     Set Cmd = New PdfCmdEllipse
-
     Set Cmd.State = mState.Clone
-
     Cmd.X = X
     Cmd.Y = Y
-
     Cmd.Width = Width
     Cmd.Height = Height
-
     Cmd.Stroke = False
     Cmd.Fill = True
-
     mCommands.Add Cmd
-
 End Sub
 
-Public Sub DrawPolyline( _
-        ByVal Points As PdfPointCollection)
-
+'---------------------------------------------------------------
+' METHODE: DrawPolyline
+' PARAMETER: Points (PdfPointCollection) - Punkte der Polylinie
+' BESCHREIBUNG: Zeichnet eine Polylinie (offene Kurve)
+'---------------------------------------------------------------
+Public Sub DrawPolyline(ByVal Points As PdfPointCollection)
     Dim Cmd As PdfCmdPolyline
-
     Set Cmd = New PdfCmdPolyline
-
     Set Cmd.State = mState.Clone
     Set Cmd.Points = Points.Clone
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Polygon zeichnen
-'---------------------------------------------------------
-Public Sub DrawPolygon( _
-        ByVal Points As PdfPointCollection)
-
+'---------------------------------------------------------------
+' METHODE: DrawPolygon
+' PARAMETER: Points (PdfPointCollection) - Eckpunkte des Polygons
+' BESCHREIBUNG: Zeichnet ein leeres Polygon (nur Umriss)
+'---------------------------------------------------------------
+Public Sub DrawPolygon(ByVal Points As PdfPointCollection)
     Dim Cmd As PdfCmdPolygon
-
     Set Cmd = New PdfCmdPolygon
-
     Set Cmd.State = mState.Clone
     Set Cmd.Points = Points.Clone
-
     Cmd.Stroke = True
     Cmd.Fill = False
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Polygon f�llen
-'---------------------------------------------------------
-Public Sub FillPolygon( _
-        ByVal Points As PdfPointCollection)
-
+'---------------------------------------------------------------
+' METHODE: FillPolygon
+' PARAMETER: Points (PdfPointCollection) - Eckpunkte des Polygons
+' BESCHREIBUNG: Zeichnet ein gefülltes Polygon
+'---------------------------------------------------------------
+Public Sub FillPolygon(ByVal Points As PdfPointCollection)
     Dim Cmd As PdfCmdPolygon
-
     Set Cmd = New PdfCmdPolygon
-
     Set Cmd.State = mState.Clone
     Set Cmd.Points = Points.Clone
-
     Cmd.Stroke = False
     Cmd.Fill = True
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Bild in Originalgr��e zeichnen
-'---------------------------------------------------------
-Public Sub DrawImage( _
-        ByVal Image As PdfImage, _
-        ByVal X As Double, _
-        ByVal Y As Double)
-
-    DrawImageEx Image, _
-                X, _
-                Y, _
-                Image.Width, _
-                Image.Height
-
+'---------------------------------------------------------------
+' METHODE: DrawImage
+' PARAMETER:
+'   - Image (PdfImage): Das zu zeichnende Bild
+'   - X, Y (Double): Position
+' BESCHREIBUNG: Zeichnet ein Bild in Originalgröße
+'---------------------------------------------------------------
+Public Sub DrawImage(ByVal Image As PdfImage, _
+        ByVal X As Double, ByVal Y As Double)
+    DrawImageEx Image, X, Y, Image.Width, Image.Height
 End Sub
 
-'---------------------------------------------------------
-' Bild skaliert zeichnen
-'---------------------------------------------------------
-Public Sub DrawImageEx( _
-        ByVal Image As PdfImage, _
-        ByVal X As Double, _
-        ByVal Y As Double, _
-        ByVal Width As Double, _
-        ByVal Height As Double)
-
+'---------------------------------------------------------------
+' METHODE: DrawImageEx
+' PARAMETER:
+'   - Image (PdfImage): Das zu zeichnende Bild
+'   - X, Y (Double): Position
+'   - Width, Height (Double): Skalierte Größe
+' BESCHREIBUNG: Zeichnet ein Bild mit benutzerdefin. Größe
+'---------------------------------------------------------------
+Public Sub DrawImageEx(ByVal Image As PdfImage, _
+        ByVal X As Double, ByVal Y As Double, _
+        ByVal Width As Double, ByVal Height As Double)
     Dim Cmd As PdfCmdImage
-
     Set Cmd = New PdfCmdImage
-
     Set Cmd.Image = Image
-
     Cmd.X = X
     Cmd.Y = Y
-
     Cmd.Width = Width
     Cmd.Height = Height
-
     mCommands.Add Cmd
-
 End Sub
 
-'---------------------------------------------------------
-' Bild proportional in ein Rechteck einpassen
-'---------------------------------------------------------
-Public Sub DrawImageFit( _
-        ByVal Image As PdfImage, _
-        ByVal X As Double, _
-        ByVal Y As Double, _
-        ByVal MaxWidth As Double, _
-        ByVal MaxHeight As Double)
-
+'---------------------------------------------------------------
+' METHODE: DrawImageFit
+' PARAMETER:
+'   - Image (PdfImage): Das zu zeichnende Bild
+'   - X, Y (Double): Position
+'   - MaxWidth, MaxHeight (Double): Maximale Größe
+' BESCHREIBUNG: Zeichnet ein Bild proportional in ein Rechteck
+'---------------------------------------------------------------
+Public Sub DrawImageFit(ByVal Image As PdfImage, _
+        ByVal X As Double, ByVal Y As Double, _
+        ByVal MaxWidth As Double, ByVal MaxHeight As Double)
     Dim Factor As Double
-
-    Factor = FitScale( _
-                Image.Width, _
-                Image.Height, _
-                MaxWidth, _
-                MaxHeight)
-
-    DrawImageEx _
-        Image, _
-        X, _
-        Y, _
-        Image.Width * Factor, _
-        Image.Height * Factor
-
+    Factor = FitScale(Image.Width, Image.Height, MaxWidth, MaxHeight)
+    DrawImageEx Image, X, Y, Image.Width * Factor, Image.Height * Factor
 End Sub
 
-
-'---------------------------------------------------------
-' Skalierungsfaktor f�r proportionales Einpassen
-'---------------------------------------------------------
-Private Function FitScale( _
-        ByVal SourceWidth As Double, _
-        ByVal SourceHeight As Double, _
-        ByVal TargetWidth As Double, _
+'---------------------------------------------------------------
+' INTERNER HELPER: FitScale
+' BESCHREIBUNG: Berechnet Skalierungsfaktor für proportionales
+'               Einpassen eines Bildes in ein Rechteck
+'---------------------------------------------------------------
+Private Function FitScale(ByVal SourceWidth As Double, _
+        ByVal SourceHeight As Double, ByVal TargetWidth As Double, _
         ByVal TargetHeight As Double) As Double
-
     Dim ScaleX As Double
     Dim ScaleY As Double
-
     ScaleX = TargetWidth / SourceWidth
     ScaleY = TargetHeight / SourceHeight
-
     If ScaleX < ScaleY Then
         FitScale = ScaleX
     Else
         FitScale = ScaleY
     End If
-
 End Function
-
