@@ -13,74 +13,46 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfBuffer
-' Aufgabe....: Puffer für den kompletten PDF-Inhalt
+'===============================================================
+' KLASSE......: PdfBuffer
+' KATEGORIE...: B - UNTERSTÃœTZUNGSKLASSE
+' VERSION.....: 0.6.0
 '
-' Version....: 0.6.0
-'=========================================================
+' BESCHREIBUNG:
+' Puffer fÃ¼r den kompletten PDF-Inhalt. Diese Klasse verwaltet
+' die PDF-Datei im Speicher als String und bietet Methoden
+' zum HinzufÃ¼gen von Text und zur Positionsverwaltung.
+'
+' VERWENDUNG: Intern durch PdfSerializer und PdfWriter
+' AUTOR: Kapp Niles GmbH & Co, KG
+'===============================================================
 
 Private mText As String
 
-'---------------------------------------------------------
-' Puffer löschen
-'---------------------------------------------------------
 Public Sub Clear()
-
     mText = ""
-
 End Sub
 
-'---------------------------------------------------------
-' Text anhängen
-'---------------------------------------------------------
 Public Sub Add(ByVal Text As String)
-
     mText = mText & Text
-
 End Sub
 
-'---------------------------------------------------------
-' Zeile anhängen (CR/LF)
-'---------------------------------------------------------
 Public Sub AddLine(ByVal Text As String)
-
     mText = mText & Text & vbCrLf
-
 End Sub
 
-'---------------------------------------------------------
-' Gesamten Inhalt liefern
-'---------------------------------------------------------
 Public Property Get Text() As String
-
     Text = mText
-
 End Property
 
-'---------------------------------------------------------
-' Aktuelle Länge
-'---------------------------------------------------------
 Public Property Get Length() As Long
-
     Length = LenB(StrConv(mText, vbFromUnicode))
-
 End Property
 
-'---------------------------------------------------------
-' Aktuelle Byteposition
-'---------------------------------------------------------
 Public Property Get Position() As Long
-
     Position = Length
-
 End Property
 
-'---------------------------------------------------------
-' Ein Byte an den Puffer anhängen
-'---------------------------------------------------------
 Public Sub AppendByte(ByVal Value As Byte)
-
     mText = mText & Chr$(Value)
-
 End Sub

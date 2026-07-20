@@ -13,57 +13,57 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfContentBuilder
-' Aufgabe....: Erzeugt den PDF-Content-Stream
+'===============================================================
+' KLASSE......: PdfContentBuilder
+' KATEGORIE...: A - HAUPTKLASSE (Content-Stream Erstellung)
+' VERSION.....: 0.6.0
 '
-' Version....: 0.6.0
-'=========================================================
+' BESCHREIBUNG:
+' Erstellt den PDF-Content-Stream aus den Zeichenbefehlen.
+' Diese Klasse wandelt die Canvas-Befehle (DrawLine, DrawText, etc.)
+' in PDF-Operatoren um.
+'
+' PDF-OPERATOREN:
+' - "m" / "l" / "S": Linien (moveto, lineto, stroke)
+' - "BT" / "ET": Text-Block (begintext, endtext)
+' - "Tj": Text ausgeben
+' - "re" / "f" / "S" / "B": Rechtecke (rectangle, fill, stroke, fillstroke)
+' - "Do": Bild ausgeben
+'
+' VERWENDUNG: Intern durch PdfWriter
+'===============================================================
 
 Dim F As New PdfFormat
 Dim Col As New PdfColor
 Dim Geo As New PdfGeometry
 
+'---------------------------------------------------------------
+' METHODE: Build
+' PARAMETER: Canvas (PdfCanvas2D) - Die zu konvertierendde Zeichenfläche
+' RÜCKGABE: String - PDF-Content-Stream
+' BESCHREIBUNG: Konvertiert alle Canvas-Befehle in PDF-Operatoren
+'---------------------------------------------------------------
 Public Function Build(ByVal Canvas As PdfCanvas2D) As String
-
     Dim Cmd As Object
     Dim S As String
-
+    
     For Each Cmd In Canvas.Commands
-
         Select Case TypeName(Cmd)
-
             Case "PdfCmdLine"
-
-                S = S _
-                    & BuildPenCommands(Cmd.State.Pen) _
-                    & EnsureCrLf(Geo.BuildLinePath( _
-                                        Cmd.X1, Cmd.Y1, _
-                                        Cmd.X2, Cmd.Y2)) _
-                    & "S" & vbCrLf
-  
+                S = S & BuildPenCommands(Cmd.State.Pen) & _
+                    EnsureCrLf(Geo.BuildLinePath(Cmd.X1, Cmd.Y1, Cmd.X2, Cmd.Y2)) & "S" & vbCrLf
+            
             Case "PdfCmdText"
+                S = S & Col.ToPdfRGB(Cmd.State.Text.Color) & " rg" & vbCrLf & _
+                    "BT" & vbCrLf & "/" & Cmd.State.Text.Font.Alias & " " & _
+                    F.Number(Cmd.State.Text.Size) & " Tf" & vbCrLf & _
+                    F.Number(Cmd.X) & " " & F.Number(Cmd.Y) & " Td" & vbCrLf & _
+                    "(" & EscapeText(Cmd.Text) & ") Tj" & vbCrLf & "ET" & vbCrLf
             
-                S = S _
-                    & Col.ToPdfRGB(Cmd.State.Text.Color) & " rg" & vbCrLf _
-                    & "BT" & vbCrLf _
-                    & "/" & Cmd.State.Text.Font.Alias & " " & F.Number(Cmd.State.Text.Size) & " Tf" & vbCrLf _
-                    & F.Number(Cmd.X) & " " _
-                    & F.Number(Cmd.Y) & " Td" & vbCrLf _
-                    & "(" & EscapeText(Cmd.Text) & ") Tj" & vbCrLf _
-                    & "ET" & vbCrLf
-                    
             Case "PdfCmdRectangle"
-            
-                S = S _
-                    & BuildPenCommands(Cmd.State.Pen) _
-                    & Col.ToPdfRGB(Cmd.State.Brush.Color) & " rg" & vbCrLf _
-                    & EnsureCrLf(Geo.BuildRectanglePath( _
-                                            Cmd.X, _
-                                            Cmd.Y, _
-                                            Cmd.Width, _
-                                            Cmd.Height))
-                
+                S = S & BuildPenCommands(Cmd.State.Pen) & _
+                    Col.ToPdfRGB(Cmd.State.Brush.Color) & " rg" & vbCrLf & _
+                    EnsureCrLf(Geo.BuildRectanglePath(Cmd.X, Cmd.Y, Cmd.Width, Cmd.Height))
                 If Cmd.Stroke And Cmd.Fill Then
                     S = S & "B" & vbCrLf
                 ElseIf Cmd.Stroke Then
@@ -71,19 +71,11 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
                 ElseIf Cmd.Fill Then
                     S = S & "f" & vbCrLf
                 End If
-                    
+            
             Case "PdfCmdEllipse"
-            
-            
-                S = S _
-                    & BuildPenCommands(Cmd.State.Pen) _
-                    & Col.ToPdfRGB(Cmd.State.Brush.Color) & " rg" & vbCrLf _
-                    & EnsureCrLf(Geo.BuildEllipsePath( _
-                                            Cmd.X, _
-                                            Cmd.Y, _
-                                            Cmd.Width, _
-                                            Cmd.Height))
-            
+                S = S & BuildPenCommands(Cmd.State.Pen) & _
+                    Col.ToPdfRGB(Cmd.State.Brush.Color) & " rg" & vbCrLf & _
+                    EnsureCrLf(Geo.BuildEllipsePath(Cmd.X, Cmd.Y, Cmd.Width, Cmd.Height))
                 If Cmd.Stroke And Cmd.Fill Then
                     S = S & "B" & vbCrLf
                 ElseIf Cmd.Stroke Then
@@ -91,22 +83,15 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
                 ElseIf Cmd.Fill Then
                     S = S & "f" & vbCrLf
                 End If
-                    
+            
             Case "PdfCmdPolyline"
+                S = S & BuildPenCommands(Cmd.State.Pen) & _
+                    EnsureCrLf(Geo.BuildPolylinePath(Cmd.Points)) & "S" & vbCrLf
             
-                    
-                S = S _
-                    & BuildPenCommands(Cmd.State.Pen) _
-                    & EnsureCrLf(Geo.BuildPolylinePath(Cmd.Points)) _
-                    & "S" & vbCrLf
-                    
             Case "PdfCmdPolygon"
-
-                S = S _
-                    & BuildPenCommands(Cmd.State.Pen) _
-                    & Col.ToPdfRGB(Cmd.State.Brush.Color) & " rg" & vbCrLf _
-                    & EnsureCrLf(Geo.BuildPolygonPath(Cmd.Points))
-            
+                S = S & BuildPenCommands(Cmd.State.Pen) & _
+                    Col.ToPdfRGB(Cmd.State.Brush.Color) & " rg" & vbCrLf & _
+                    EnsureCrLf(Geo.BuildPolygonPath(Cmd.Points))
                 If Cmd.Stroke And Cmd.Fill Then
                     S = S & "B" & vbCrLf
                 ElseIf Cmd.Stroke Then
@@ -114,99 +99,51 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
                 ElseIf Cmd.Fill Then
                     S = S & "f" & vbCrLf
                 End If
-                    
-                    
+            
             Case "PdfCmdImage"
-
-                S = S _
-                    & "q" & vbCrLf _
-                    & F.Matrix( _
-                        Cmd.Width, _
-                        0, _
-                        0, _
-                        Cmd.Height, _
-                        Cmd.X, _
-                        Cmd.Y) _
-                    & " cm" & vbCrLf _
-                    & "/" & Cmd.Image.Alias & " Do" & vbCrLf _
-                    & "Q" & vbCrLf
-                    
+                S = S & "q" & vbCrLf & _
+                    F.Matrix(Cmd.Width, 0, 0, Cmd.Height, Cmd.X, Cmd.Y) & " cm" & vbCrLf & _
+                    "/" & Cmd.Image.Alias & " Do" & vbCrLf & "Q" & vbCrLf
         End Select
-
     Next
-
+    
     Build = S
-
 End Function
 
-
-'---------------------------------------------------------
-' Text f�r PDF maskieren
-'---------------------------------------------------------
 Private Function EscapeText(ByVal Text As String) As String
-
-    Text = Replace$(Text, "\", "\\")
-    Text = Replace$(Text, "(", "\(")
-    Text = Replace$(Text, ")", "\)")
-
+    Text = Replace$(Text, "\\", "\\\\")
+    Text = Replace$(Text, "(", "\\(")
+    Text = Replace$(Text, ")", "\\)")
     EscapeText = Text
-
 End Function
 
 Private Function EnsureCrLf(ByVal Text As String) As String
-
     If Len(Text) = 0 Then
         Exit Function
     End If
-
     If Right$(Text, 2) <> vbCrLf Then
         Text = Text & vbCrLf
     End If
-
     EnsureCrLf = Text
-
 End Function
 
 Private Function BuildPenCommands(ByVal Pen As PdfPen) As String
-
     Dim F As New PdfFormat
     Dim S As String
     Dim I As Long
-
+    
     S = ""
-
-    'Linienbreite
     S = S & F.Number(Pen.Width) & " w" & vbCrLf
-
-    'LineCap
     S = S & F.Number(Pen.LineCap) & " J" & vbCrLf
-
-    'LineJoin
     S = S & F.Number(Pen.LineJoin) & " j" & vbCrLf
-
-    'MiterLimit
     S = S & F.Number(Pen.MiterLimit) & " M" & vbCrLf
-
-    'DashPattern
     S = S & "["
-
     For I = 0 To Pen.DashCount - 1
-
         If I > 0 Then S = S & " "
-
         S = S & F.Number(Pen.DashValue(I))
-
     Next
-
-    S = S & "] "
-
-    S = S & F.Number(Pen.DashPhase)
-
-    S = S & " d" & vbCrLf
-
-    'Farbe
+    S = S & "] " & F.Number(Pen.DashPhase) & " d" & vbCrLf
     S = S & Col.ToPdfRGB(Pen.Color) & " RG" & vbCrLf
-
+    
     BuildPenCommands = S
-
 End Function
