@@ -29,30 +29,65 @@ Option Explicit
 
 Private mText As String
 
+'---------------------------------------------------------
+' Puffer löschen
+'---------------------------------------------------------
 Public Sub Clear()
+
     mText = ""
+
 End Sub
 
+'---------------------------------------------------------
+' Text anhängen
+'---------------------------------------------------------
 Public Sub Add(ByVal Text As String)
+
     mText = mText & Text
+
 End Sub
 
+'---------------------------------------------------------
+' Zeile anhängen (CR/LF)
+'---------------------------------------------------------
 Public Sub AddLine(ByVal Text As String)
+
     mText = mText & Text & vbCrLf
+
 End Sub
 
+'---------------------------------------------------------
+' Gesamten Inhalt liefern
+'---------------------------------------------------------
 Public Property Get Text() As String
+
     Text = mText
+
 End Property
 
+'---------------------------------------------------------
+' Aktuelle Länge
+'---------------------------------------------------------
 Public Property Get Length() As Long
+
     Length = LenB(StrConv(mText, vbFromUnicode))
+
 End Property
 
+'---------------------------------------------------------
+' Aktuelle Byteposition
+'---------------------------------------------------------
 Public Property Get Position() As Long
+
     Position = Length
+
 End Property
 
+'---------------------------------------------------------
+' Ein Byte an den Puffer anhängen
+'---------------------------------------------------------
 Public Sub AppendByte(ByVal Value As Byte)
+
     mText = mText & Chr$(Value)
+
 End Sub

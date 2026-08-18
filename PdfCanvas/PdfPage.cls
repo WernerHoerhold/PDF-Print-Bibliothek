@@ -19,12 +19,12 @@ Option Explicit
 ' VERSION.....: 1.0
 '
 ' BESCHREIBUNG:
-' ReprÃ¤sentiert eine einzelne PDF-Seite innerhalb eines
+' Repräsentiert eine einzelne PDF-Seite innerhalb eines
 ' Dokuments. Jede Seite hat:
-' - Eigene Abmessungen (Breite x HÃ¶he)
-' - GrÃ¶ÃŸe (A4, Letter, etc.)
+' - Eigene Abmessungen (Breite x Höhe)
+' - Größe (A4, Letter, etc.)
 ' - Orientierung (Portrait/Landscape)
-' - Canvas (PdfCanvas2D) fÃ¼r Zeichnungen
+' - Canvas (PdfCanvas2D) für Zeichnungen
 '
 ' VERWENDUNG:
 '   Dim Doc As New PdfDocument
@@ -33,11 +33,12 @@ Option Explicit
 '   Page.Canvas.DrawLine 50, 50, 200, 200
 '
 ' STANDARD-WERT: A4 Portrait (595 x 842 Punkte)
-' ABHÃ„NGIGKEITEN: PdfCanvas2D
+' ABHÄNGIGKEITEN: PdfCanvas2D
 '===============================================================
 
 Private mWidth As Long
 Private mHeight As Long
+
 Private mCanvas As PdfCanvas2D
 Private mPageSize As Long
 Private mOrientation As Long
@@ -45,48 +46,62 @@ Private mOrientation As Long
 '---------------------------------------------------------------
 ' EVENT: Class_Initialize
 ' BESCHREIBUNG: Initialisiert die Seite mit A4 Portrait
-'               SeitengrÃ¶ÃŸe in PostScript-Punkten (72 dpi)
+'               Seitengröße in PostScript-Punkten (72 dpi)
 '---------------------------------------------------------------
 Private Sub Class_Initialize()
-    ' A4 in PostScript-Punkten: 595 x 842
+
+    ' A4 in PostScript-Punkten(72 dpi): 595 x 842
     mPageSize = psA4
     mOrientation = poPortrait
+
     UpdatePageSize
+
     Set mCanvas = New PdfCanvas2D
+
 End Sub
 
 '---------------------------------------------------------------
 ' PROPERTY: Width
-' RÃœCKGABE: Long - Seitenbreite in Punkten
+' RÜCKGABE: Long - Seitenbreite in Punkten
 '---------------------------------------------------------------
 Public Property Get Width() As Long
+
     Width = mWidth
+
 End Property
 
 Public Property Let Width(ByVal Value As Long)
+
     mWidth = Value
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Height
-' RÃœCKGABE: Long - SeitenhÃ¶he in Punkten
+' RÜCKGABE: Long - Seitenhöhe in Punkten
 '---------------------------------------------------------------
 Public Property Get Height() As Long
+
     Height = mHeight
+
 End Property
 
 Public Property Let Height(ByVal Value As Long)
+
     mHeight = Value
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Canvas
-' RÃœCKGABE: PdfCanvas2D - ZeichenflÃ¤che fÃ¼r diese Seite
-' BESCHREIBUNG: Ãœber das Canvas kÃ¶nnen Grafiken und Text
+' RÜCKGABE: PdfCanvas2D - Zeichenfläche für diese Seite
+' BESCHREIBUNG: Über das Canvas können Grafiken und Text
 '               gezeichnet werden.
 '---------------------------------------------------------------
 Public Property Get Canvas() As PdfCanvas2D
+
     Set Canvas = mCanvas
+
 End Property
 
 '---------------------------------------------------------------
@@ -94,62 +109,88 @@ End Property
 ' PARAMETER: Value (Long) - Eine der Enumerationen:
 '            psA5 (420x595), psA4 (595x842), psA3 (842x1191),
 '            psLetter (612x792), psLegal (612x1008)
-' BESCHREIBUNG: Setzt die SeitengrÃ¶ÃŸe und passt Breite/HÃ¶he
+' BESCHREIBUNG: Setzt die Seitengröße und passt Breite/Höhe
 '               entsprechend an
 '---------------------------------------------------------------
 Public Property Get PageSize() As Long
+
     PageSize = mPageSize
+
 End Property
 
 Public Property Let PageSize(ByVal Value As Long)
+
     mPageSize = Value
+
     UpdatePageSize
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Orientation
 ' PARAMETER: Value (Long) - poPortrait (0) oder poLandscape (1)
 ' BESCHREIBUNG: Setzt die Seiten-Orientierung und vertauscht
-'               bei Bedarf Breite und HÃ¶he
+'               bei Bedarf Breite und Höhe
 '---------------------------------------------------------------
 Public Property Get Orientation() As Long
+
     Orientation = mOrientation
+
 End Property
 
 Public Property Let Orientation(ByVal Value As Long)
+
     mOrientation = Value
+
     UpdatePageSize
+
 End Property
 
 '---------------------------------------------------------------
 ' INTERNER HELPER: UpdatePageSize
-' BESCHREIBUNG: Aktualisiert Breite und HÃ¶he basierend auf
-'               SeitengrÃ¶ÃŸe und Orientierung
+' BESCHREIBUNG: Aktualisiert Breite und Höhe basierend auf
+'               Seitengröße und Orientierung
 '---------------------------------------------------------------
 Private Sub UpdatePageSize()
+
     Select Case mPageSize
+
         Case psA5
+
             mWidth = 420
             mHeight = 595
+
         Case psA4
+
             mWidth = 595
             mHeight = 842
+
         Case psA3
+
             mWidth = 842
             mHeight = 1191
+
         Case psLetter
+
             mWidth = 612
             mHeight = 792
+
         Case psLegal
+
             mWidth = 612
             mHeight = 1008
+
     End Select
     
-    ' Bei Landscape: Breite und HÃ¶he vertauschen
+    ' Bei Landscape: Breite und Höhe vertauschen
     If mOrientation = poLandscape Then
+
         Dim T As Long
+
         T = mWidth
         mWidth = mHeight
         mHeight = T
+
     End If
+
 End Sub

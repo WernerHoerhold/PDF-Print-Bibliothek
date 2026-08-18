@@ -15,12 +15,12 @@ Option Explicit
 
 '===============================================================
 ' KLASSE......: PdfFile
-' KATEGORIE...: B - UNTERST√úTZUNGSKLASSE (Datei-Handling)
+' KATEGORIE...: B - UNTERST‹TZUNGSKLASSE (Datei-Handling)
 ' VERSION.....: 1.0
 '
 ' BESCHREIBUNG:
 ' Speichert PDF-Datei auf der Festplatte.
-' Einfache Klasse f√ºr Bin√§r-Datei-Schreibvorg√§nge.
+' Einfache Klasse f¸r Bin‰r-Datei-Schreibvorg‰nge.
 '
 ' VERWENDUNG: Intern durch PdfDocument.Save()
 ' AUTOR: Kapp Niles GmbH & Co, KG
@@ -31,12 +31,24 @@ Option Explicit
 ' PARAMETER:
 '   - FileName (String): Zieldatei-Pfad
 '   - Text (String): PDF-Inhalt
-' BESCHREIBUNG: Speichert den PDF-Inhalt als Bin√§rdatei
+' BESCHREIBUNG: Speichert den PDF-Inhalt als Bin‰rdatei
 '---------------------------------------------------------------
-Public Sub Save(ByVal FileName As String, ByVal Text As String)
+Public Sub Save(ByVal FileName As String, _
+                ByVal Text As String)
+
     Dim F As Integer
+    Dim Data() As Byte
+
+    Data = StrConv(Text, vbFromUnicode)
+
     F = FreeFile
+
     Open FileName For Binary Access Write As #F
+
     Put #F, , Text
+
     Close #F
+
 End Sub
+    
+

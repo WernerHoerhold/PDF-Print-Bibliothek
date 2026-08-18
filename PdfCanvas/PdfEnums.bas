@@ -33,3 +33,16 @@ Public Enum PdfOrientation
     poPortrait = 0
     poLandscape = 1
 End Enum
+
+Public Enum PdfStandardFont
+    psfHelvetica = 0
+    psfTimesRoman = 1
+    psfCourier = 2
+    psfSymbol = 3
+    psfZapfDingbats = 4
+    psfArial = 10
+    psfTimesNewRoman = 11
+    psfCourierNew = 12
+End Enum
+
+

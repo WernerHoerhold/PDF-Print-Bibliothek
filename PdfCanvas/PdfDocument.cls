@@ -19,8 +19,8 @@ Option Explicit
 ' VERSION.....: 1.0
 '
 ' BESCHREIBUNG:
-' ReprÃ¤sentiert ein PDF-Dokument. Dies ist die zentrale Klasse,
-' mit der Anwender hauptsÃ¤chlich arbeiten. Sie verwaltet:
+' Repräsentiert ein PDF-Dokument. Dies ist die zentrale Klasse,
+' mit der Anwender hauptsächlich arbeiten. Sie verwaltet:
 ' - Seiten (Collection)
 ' - Schriftarten (Fonts)
 ' - Bilder
@@ -33,7 +33,7 @@ Option Explicit
 '   Page.Canvas.DrawText 100, 100, "Hallo PDF!"
 '   Doc.Save "C:\Output\Test.pdf"
 '
-' ABHÃ„NGIGKEITEN: PdfPage, PdfFont, PdfImage, PdfWriter, PdfFile
+' ABHÄNGIGKEITEN: PdfPage, PdfFont, PdfImage, PdfWriter, PdfFile
 ' AUTOR: Kapp Niles GmbH & Co, KG
 '===============================================================
 
@@ -56,65 +56,79 @@ Private mLastErrorText As String
 '               - A4-Format, Portrait-Orientierung
 '---------------------------------------------------------------
 Private Sub Class_Initialize()
+
     Set mPages = New Collection
     Set mFonts = New Collection
     Set mImages = New Collection
     
-    Set mDefaultFont = AddFont("Helvetica")
+    Set mDefaultFont = AddFont(psfHelvetica)
     mDefaultFont.Size = 12
     
     Set mPageSizes = New PdfPageSizes
     Set mOrientations = New PdfOrientations
     Set mLineCaps = New PdfLineCaps
     Set mLineJoins = New PdfLineJoins
+    
 End Sub
 
 '---------------------------------------------------------------
 ' METHODE: AddPage
-' RÃœCKGABE: PdfPage - Neu erstellte Seite
-' BESCHREIBUNG: FÃ¼gt eine neue leere Seite zum Dokument hinzu.
-'               Die neue Seite erhÃ¤lt automatisch die Standard-
-'               Schrift und wird zur Sammlung hinzugefÃ¼gt.
+' RÜCKGABE: PdfPage - Neu erstellte Seite
+' BESCHREIBUNG: Fügt eine neue leere Seite zum Dokument hinzu.
+'               Die neue Seite erhält automatisch die Standard-
+'               Schrift und wird zur Sammlung hinzugefügt.
 '---------------------------------------------------------------
 Public Function AddPage() As PdfPage
+
     Dim P As PdfPage
+
     Set P = New PdfPage
+
     Set P.Canvas.Font = mDefaultFont
+    
     mPages.Add P
+
     Set AddPage = P
+
 End Function
 
 '---------------------------------------------------------------
 ' PROPERTY: PageCount (READ-ONLY)
-' RÃœCKGABE: Long - Anzahl der Seiten im Dokument
+' RÜCKGABE: Long - Anzahl der Seiten im Dokument
 '---------------------------------------------------------------
 Public Property Get PageCount() As Long
+
     PageCount = mPages.Count
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Page(Index)
 ' PARAMETER: Index (Long) - 1-basierter Index (1 bis PageCount)
-' RÃœCKGABE: PdfPage - Die Seite mit diesem Index
+' RÜCKGABE: PdfPage - Die Seite mit diesem Index
 '---------------------------------------------------------------
 Public Property Get Page(ByVal Index As Long) As PdfPage
+
     Set Page = mPages(Index)
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Pages (INTERNAL)
-' RÃœCKGABE: Collection - Alle Seiten (nur fÃ¼r interne Nutzung)
+' RÜCKGABE: Collection - Alle Seiten (nur für interne Nutzung)
 '---------------------------------------------------------------
 Friend Property Get Pages() As Collection
+
     Set Pages = mPages
+
 End Property
 
 '---------------------------------------------------------------
 ' METHODE: Save
 ' PARAMETER: FileName (String) - Zielverzeichnis und Dateiname
-' RÃœCKGABE: Boolean - True wenn erfolgreich, False bei Fehler
+' RÜCKGABE: Boolean - True wenn erfolgreich, False bei Fehler
 ' BESCHREIBUNG: Speichert das gesamte Dokument als PDF-Datei.
-'               Bei Fehler kÃ¶nnen Fehlerdetails Ã¼ber
+'               Bei Fehler können Fehlerdetails über
 '               LastErrorNumber und LastErrorText abgerufen werden.
 '
 ' BEISPIEL:
@@ -123,6 +137,7 @@ End Property
 '   End If
 '---------------------------------------------------------------
 Public Function Save(ByVal FileName As String) As Boolean
+
     On Error GoTo ErrorHandler
     
     Dim Writer As New PdfWriter
@@ -131,9 +146,11 @@ Public Function Save(ByVal FileName As String) As Boolean
     ClearLastError
     
     File.Save FileName, Writer.BuildDocument(Me)
+
     Save = True
     
     Exit Function
+
 ErrorHandler:
     SetLastError Err.Number, Err.Description
     Save = False
@@ -141,115 +158,143 @@ End Function
 
 '---------------------------------------------------------------
 ' PROPERTY: DefaultFont
-' RÃœCKGABE: PdfFont - Die Standard-Schrift des Dokuments
+' RÜCKGABE: PdfFont - Die Standard-Schrift des Dokuments
 ' BESCHREIBUNG: Liefert die Standard-Schrift, die neuen Seiten
 '               automatisch zugewiesen wird.
 '---------------------------------------------------------------
 Public Property Get DefaultFont() As PdfFont
+
     Set DefaultFont = mDefaultFont
+
 End Property
 
 '---------------------------------------------------------------
 ' METHODE: AddImage
 ' PARAMETER: Image (PdfImage) - Bilder-Objekt
 ' BESCHREIBUNG: Registriert ein Bild im Dokument.
-'               Das Bild erhÃ¤lt automatisch einen eindeutigen
+'               Das Bild erhält automatisch einen eindeutigen
 '               Alias (Im1, Im2, etc.).
 '---------------------------------------------------------------
 Public Sub AddImage(ByVal Image As PdfImage)
+
     Image.Alias = "Im" & CStr(mImages.Count + 1)
+    
     mImages.Add Image
+
 End Sub
 
 '---------------------------------------------------------------
 ' PROPERTY: Image(Index)
-' RÃœCKGABE: PdfImage - Das Bild mit dem angegebenen Index
+' RÜCKGABE: PdfImage - Das Bild mit dem angegebenen Index
 '---------------------------------------------------------------
 Public Property Get Image(ByVal Index As Long) As PdfImage
+
     Set Image = mImages(Index)
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: ImageCount (READ-ONLY)
-' RÃœCKGABE: Long - Anzahl der registrierten Bilder
+' RÜCKGABE: Long - Anzahl der registrierten Bilder
 '---------------------------------------------------------------
 Public Property Get ImageCount() As Long
+
     ImageCount = mImages.Count
+
 End Property
 
 '---------------------------------------------------------------
 ' METHODE: AddFont
 ' PARAMETER: Name (String) - PDF-Schriftname (z.B. "Helvetica")
-' RÃœCKGABE: PdfFont - Neu erstelltes Schrift-Objekt
+' RÜCKGABE: PdfFont - Neu erstelltes Schrift-Objekt
 ' BESCHREIBUNG: Registriert eine neue Schriftart.
-'               Die Schrift erhÃ¤lt automatisch einen Alias (F1, F2, etc.)
-'               und wird mit der Standard-GrÃ¶ÃŸe 10 initialisiert.
+'               Die Schrift erhält automatisch einen Alias (F1, F2, etc.)
+'               und wird mit der Standard-Größe 10 initialisiert.
 '---------------------------------------------------------------
-Public Function AddFont(ByVal Name As String) As PdfFont
+Public Function AddFont(ByVal Name As Long) As PdfFont
+
     Dim F As PdfFont
     Set F = New PdfFont
-    F.Name = Name
+
+    F.Family = Name
     F.Alias = "F" & CStr(mFonts.Count + 1)
     F.Size = 10
+
     mFonts.Add F
+
     Set AddFont = F
+
 End Function
 
 '---------------------------------------------------------------
 ' PROPERTY: FontCount (READ-ONLY)
-' RÃœCKGABE: Long - Anzahl der registrierten Schriften
+' RÜCKGABE: Long - Anzahl der registrierten Schriften
 '---------------------------------------------------------------
 Public Property Get FontCount() As Long
+
     FontCount = mFonts.Count
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Font(Index)
-' RÃœCKGABE: PdfFont - Die Schrift mit dem angegebenen Index
+' RÜCKGABE: PdfFont - Die Schrift mit dem angegebenen Index
 '---------------------------------------------------------------
 Public Property Get Font(ByVal Index As Long) As PdfFont
+
     Set Font = mFonts(Index)
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: PageSizes
-' RÃœCKGABE: PdfPageSizes - Singleton fÃ¼r SeitengrÃ¶ÃŸen
+' RÜCKGABE: PdfPageSizes - Singleton für Seitengrößen
 '---------------------------------------------------------------
 Public Property Get PageSizes() As PdfPageSizes
+
     Set PageSizes = PdfGlobals.PageSizes
+    
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: Orientations
-' RÃœCKGABE: PdfOrientations - Singleton fÃ¼r Orientierungen
+' RÜCKGABE: PdfOrientations - Singleton für Orientierungen
 '---------------------------------------------------------------
 Public Property Get Orientations() As PdfOrientations
+
     Set Orientations = PdfGlobals.Orientations
+    
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: LineCaps
-' RÃœCKGABE: PdfLineCaps - Linienenden-Stile
+' RÜCKGABE: PdfLineCaps - Linienenden-Stile
 '---------------------------------------------------------------
 Public Property Get LineCaps() As PdfLineCaps
+
     Set LineCaps = mLineCaps
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: LineJoins
-' RÃœCKGABE: PdfLineJoins - Linienverbindungs-Stile
+' RÜCKGABE: PdfLineJoins - Linienverbindungs-Stile
 '---------------------------------------------------------------
 Public Property Get LineJoins() As PdfLineJoins
+
     Set LineJoins = mLineJoins
+
 End Property
 
 '---------------------------------------------------------------
 ' INTERNER HELPER: ClearLastError
-' BESCHREIBUNG: Setzt die Fehler-Variablen zurÃ¼ck
+' BESCHREIBUNG: Setzt die Fehler-Variablen zurück
 '---------------------------------------------------------------
 Private Sub ClearLastError()
+
     mLastErrorNumber = 0
     mLastErrorText = ""
+
 End Sub
 
 '---------------------------------------------------------------
@@ -257,22 +302,28 @@ End Sub
 ' BESCHREIBUNG: Speichert Fehlerinformationen
 '---------------------------------------------------------------
 Private Sub SetLastError(ByVal Number As Long, ByVal Description As String)
+
     mLastErrorNumber = Number
     mLastErrorText = Description
+
 End Sub
 
 '---------------------------------------------------------------
 ' PROPERTY: LastErrorNumber
-' RÃœCKGABE: Long - Nummer des letzten Fehlers (0 = kein Fehler)
+' RÜCKGABE: Long - Nummer des letzten Fehlers (0 = kein Fehler)
 '---------------------------------------------------------------
 Public Property Get LastErrorNumber() As Long
+
     LastErrorNumber = mLastErrorNumber
+
 End Property
 
 '---------------------------------------------------------------
 ' PROPERTY: LastErrorText
-' RÃœCKGABE: String - Beschreibung des letzten Fehlers
+' RÜCKGABE: String - Beschreibung des letzten Fehlers
 '---------------------------------------------------------------
 Public Property Get LastErrorText() As String
+
     LastErrorText = mLastErrorText
+
 End Property

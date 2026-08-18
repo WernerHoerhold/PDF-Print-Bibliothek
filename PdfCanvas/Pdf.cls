@@ -39,7 +39,9 @@ Option Explicit
 ' BESCHREIBUNG: Erstellt ein neues, leeres PDF-Dokument
 '---------------------------------------------------------------
 Public Function CreateDocument() As PdfDocument
+
     Set CreateDocument = New PdfDocument
+
 End Function
 
 '---------------------------------------------------------------
@@ -49,22 +51,29 @@ End Function
 ' BESCHREIBUNG: Lädt ein JPEG-Bild aus Datei
 '---------------------------------------------------------------
 Public Function LoadImage(ByVal FileName As String) As PdfImage
+
     Dim Img As PdfImage
+
     Set Img = New PdfImage
+
     Img.LoadFromFile FileName
+
     Set LoadImage = Img
+
 End Function
 
 '---------------------------------------------------------------
 ' METHODE: CreateImage (STUB - nicht implementiert)
 '---------------------------------------------------------------
 Public Function CreateImage() As PdfImage
+
 End Function
 
 '---------------------------------------------------------------
 ' METHODE: CreateFont (STUB - nicht implementiert)
 '---------------------------------------------------------------
 Public Function CreateFont() As PdfFont
+
 End Function
 
 '---------------------------------------------------------------
@@ -74,19 +83,23 @@ End Function
 '               Polylinien und Polygone
 '---------------------------------------------------------------
 Public Function CreatePointCollection() As PdfPointCollection
+
     Set CreatePointCollection = New PdfPointCollection
+
 End Function
 
 '---------------------------------------------------------------
 ' METHODE: CreateBrush (STUB - nicht implementiert)
 '---------------------------------------------------------------
 Public Function CreateBrush() As PdfBrush
+
 End Function
 
 '---------------------------------------------------------------
 ' METHODE: CreatePen (STUB - nicht implementiert)
 '---------------------------------------------------------------
 Public Function CreatePen() As PdfPen
+
 End Function
 
 '---------------------------------------------------------------
@@ -94,7 +107,9 @@ End Function
 ' RÜCKGABE: String - Versionsnummer (z.B. "1.1")
 '---------------------------------------------------------------
 Public Property Get Version() As String
+
     Version = PDF_VERSION
+
 End Property
 
 '---------------------------------------------------------------
@@ -102,7 +117,9 @@ End Property
 ' RÜCKGABE: String - Build-Nummer
 '---------------------------------------------------------------
 Public Property Get Build() As String
+
     Build = PDF_BUILD
+
 End Property
 
 '---------------------------------------------------------------
@@ -110,7 +127,9 @@ End Property
 ' RÜCKGABE: String - Bibliotheks-Name ("PDFLib")
 '---------------------------------------------------------------
 Public Property Get Name() As String
+
     Name = PDF_NAME
+
 End Property
 
 '---------------------------------------------------------------
@@ -118,7 +137,9 @@ End Property
 ' RÜCKGABE: String - Copyright-Information
 '---------------------------------------------------------------
 Public Property Get Copyright() As String
+
     Copyright = PDF_COPYRIGHT
+
 End Property
 
 '---------------------------------------------------------------
@@ -127,8 +148,10 @@ End Property
 '                    die Bibliothek (Name, Version, Build, Copyright)
 '---------------------------------------------------------------
 Public Property Get About() As String
+
     About = PDF_NAME & vbCrLf & _
             " Version " & PDF_VERSION & vbCrLf & _
             " (Build " & PDF_BUILD & ")" & vbCrLf & vbCrLf & _
             PDF_COPYRIGHT
+
 End Property

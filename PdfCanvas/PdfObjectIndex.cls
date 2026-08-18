@@ -15,13 +15,13 @@ Option Explicit
 
 '===============================================================
 ' KLASSE......: PdfObjectIndex
-' KATEGORIE...: B - UNTERSTÃœTZUNGSKLASSE
+' KATEGORIE...: B - UNTERSTÜTZUNGSKLASSE
 ' VERSION.....: 0.6.0
 '
 ' BESCHREIBUNG:
 ' Verwaltet alle PDF-Objekte und deren Positionen.
-' Diese Klasse fÃ¼hrt ein Verzeichnis aller Objekte
-' fÃ¼r die Cross-Reference-Tabelle (XRef).
+' Diese Klasse führt ein Verzeichnis aller Objekte
+' für die Cross-Reference-Tabelle (XRef).
 '
 ' VERWENDUNG: Intern durch PdfWriter
 ' AUTOR: Kapp Niles GmbH & Co, KG
@@ -29,21 +29,40 @@ Option Explicit
 
 Private mObjects As Collection
 
+'---------------------------------------------------------
+' Initialisierung
+'---------------------------------------------------------
 Private Sub Class_Initialize()
+
     Set mObjects = New Collection
+
 End Sub
 
+'---------------------------------------------------------
+' Alle Einträge löschen
+'---------------------------------------------------------
 Public Sub Clear()
+
     Set mObjects = New Collection
+
 End Sub
 
-Public Sub Add(ByVal Number As Long, ByVal Position As Long, ByVal Kind As Long)
+'---------------------------------------------------------
+' Neues PDF-Objekt hinzufügen
+'---------------------------------------------------------
+Public Sub Add( _
+        ByVal Number As Long, _
+        ByVal Position As Long, _
+        ByVal Kind As Long)
+
     Dim Obj As PdfObject
+
     On Error Resume Next
     mObjects.Remove CStr(Number)
     On Error GoTo 0
     
     Set Obj = New PdfObject
+
     Obj.Number = Number
     Obj.Position = Position
     Obj.Kind = Kind
@@ -53,20 +72,42 @@ Public Sub Add(ByVal Number As Long, ByVal Position As Long, ByVal Kind As Long)
     On Error GoTo 0
     
     mObjects.Add Obj, CStr(Number)
+
 End Sub
 
+'---------------------------------------------------------
+' Anzahl der Objekte
+'---------------------------------------------------------
 Public Property Get Count() As Long
+
     Count = mObjects.Count
+
 End Property
 
+'---------------------------------------------------------
+' Objekt liefern
+'---------------------------------------------------------
 Public Property Get Item(ByVal Number As Long) As PdfObject
+
     Set Item = mObjects(CStr(Number))
+
 End Property
 
+'---------------------------------------------------------
+' Position eines Objektes
+'---------------------------------------------------------
 Public Property Get Position(ByVal Number As Long) As Long
+
     Position = mObjects(CStr(Number)).Position
+
 End Property
 
+'---------------------------------------------------------
+' Objekttyp liefern
+'---------------------------------------------------------
 Public Property Get Kind(ByVal Number As Long) As Long
+
     Kind = mObjects(CStr(Number)).Kind
+
 End Property
+
