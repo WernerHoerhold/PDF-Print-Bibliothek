@@ -13,15 +13,33 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfFile
-' Aufgabe....: Speichert Textdateien
-'=========================================================
+'===============================================================
+' KLASSE......: PdfFile
+' KATEGORIE...: B - UNTERSTÜTZUNGSKLASSE (Datei-Handling)
+' VERSION.....: 1.0
+'
+' BESCHREIBUNG:
+' Speichert PDF-Datei auf der Festplatte.
+' Einfache Klasse für Binär-Datei-Schreibvorgänge.
+'
+' VERWENDUNG: Intern durch PdfDocument.Save()
+' AUTOR: Kapp Niles GmbH & Co, KG
+'===============================================================
 
+'---------------------------------------------------------------
+' METHODE: Save
+' PARAMETER:
+'   - FileName (String): Zieldatei-Pfad
+'   - Text (String): PDF-Inhalt
+' BESCHREIBUNG: Speichert den PDF-Inhalt als Binärdatei
+'---------------------------------------------------------------
 Public Sub Save(ByVal FileName As String, _
                 ByVal Text As String)
 
     Dim F As Integer
+    Dim Data() As Byte
+
+    Data = StrConv(Text, vbFromUnicode)
 
     F = FreeFile
 
@@ -32,3 +50,5 @@ Public Sub Save(ByVal FileName As String, _
     Close #F
 
 End Sub
+    
+

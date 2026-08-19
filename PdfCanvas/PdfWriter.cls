@@ -13,10 +13,23 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfWriter
-' Aufgabe....: Erzeugt eine PDF-Datei
-'=========================================================
+'===============================================================
+' KLASSE......: PdfWriter
+' KATEGORIE...: A - HAUPTKLASSE (Interne PDF-Engine)
+' VERSION.....: 1.0
+'
+' BESCHREIBUNG:
+' Kern-Engine zum Schreiben von PDF-Dateien. Diese interne
+' Klasse verwaltet:
+' - PDF-Struktur (Header, Catalog, Pages)
+' - Objekt-Numbering
+' - Ressourcen (Fonts, Images)
+' - Cross-Reference-Tabelle (XRef)
+'
+' VERWENDUNG: Intern - nicht direkt vom Anwender
+' DEPENDENCIES: PdfBuffer, PdfSerializer, PdfObjectIndex
+' AUTOR: Kapp Niles GmbH & Co, KG
+'===============================================================
 
 Private mBuffer As PdfBuffer
 Private mSerializer As PdfSerializer
@@ -32,7 +45,6 @@ Private mPagesObject As Long
 Private mPageObjects As Collection
 
 Private mFontObject As Long
-'Private mImageObject As Long
 
 Private Sub Class_Initialize()
 
@@ -46,6 +58,13 @@ Private Sub Class_Initialize()
    
 End Sub
 
+'---------------------------------------------------------------
+' METHODE: BuildDocument
+' PARAMETER: Doc (PdfDocument) - Zu speicherndes Dokument
+' RÜCKGABE: String - Kompletter PDF-Dateiinhalt
+' BESCHREIBUNG: Erstellt die komplette PDF-Datei mit allen
+'               Objekten, Seiten, Fonts und Bildern
+'---------------------------------------------------------------
 Public Function BuildDocument(ByVal Doc As PdfDocument) As String
 
     mBuffer.Clear
@@ -54,12 +73,14 @@ Public Function BuildDocument(ByVal Doc As PdfDocument) As String
     
     Set mPageObjects = New Collection
     
+    ' Nummern zuweisen
     mCatalogObject = mNumbers.NextNumber
     mPagesObject = mNumbers.NextNumber
     
     Dim I As Long
     Dim P As PdfPageObjects
     
+    ' Nummern für Seiten
     For I = 1 To Doc.PageCount
         
         Set P = New PdfPageObjects
@@ -71,19 +92,17 @@ Public Function BuildDocument(ByVal Doc As PdfDocument) As String
     
     Next
     
+    ' Nummern für Fonts
     For I = 1 To Doc.FontCount
         Doc.Font(I).ObjectNumber = mNumbers.NextNumber
     Next
     
-'    If Doc.ImageCount > 0 Then
-'        mImageObject = mNumbers.NextNumber
-'    Else
-'        mImageObject = 0
-'    End If
+    ' Nummern für Bilder
     For I = 1 To Doc.ImageCount
         Doc.Image(I).ObjectNumber = mNumbers.NextNumber
     Next
-
+    
+    ' PDF schreiben
     WriteHeader
     WriteCatalog
     WritePages
@@ -100,13 +119,9 @@ Public Function BuildDocument(ByVal Doc As PdfDocument) As String
         WriteFont Doc.Font(I)
     Next
 
-    'If Doc.ImageCount > 0 Then
     For I = 1 To Doc.ImageCount
-        'Doc.Image(I).ObjectNumber = mNumbers.NextNumber
         WriteImage Doc.Image(I)
     Next
-    'End If
-    
     
     WriteXRef
     WriteTrailer
@@ -153,10 +168,8 @@ Private Sub WritePages()
 
     mSerializer.AddName "Type", "/Pages"
 
-    'mSerializer.AddInteger "Count", 1
     mSerializer.AddInteger "Count", mPageObjects.Count
     
-    'mSerializer.AddRaw "/Kids [" & mPageObject & " 0 R]"
     Dim I As Long
     Dim P As PdfPageObjects
     Dim S As String
@@ -167,9 +180,7 @@ Private Sub WritePages()
     
         Set P = mPageObjects(I)
     
-        S = S _
-            & P.PageObject _
-            & " 0 R " & vbCrLf
+        S = S & P.PageObject & " 0 R " & vbCrLf
     
     Next
     
@@ -190,7 +201,6 @@ Private Sub WritePage( _
         ByVal Page As PdfPage, _
         ByVal Obj As PdfPageObjects)
         
-    'BeginObject mPageObject, CLng(potPage)
     BeginObject Obj.PageObject, CLng(potPage)
     
     mSerializer.DictionaryBegin
@@ -199,51 +209,10 @@ Private Sub WritePage( _
 
     mSerializer.AddReference "Parent", mPagesObject
 
-    'mSerializer.AddValue "MediaBox", "[0 0 595 842]"
     mSerializer.AddValue "MediaBox", "[0 0 " & CStr(Page.Width) & " " & CStr(Page.Height) & "]"
 
-    'mSerializer.AddReference "Contents", mContentObject
     mSerializer.AddReference "Contents", Obj.ContentObject
     
-    'mSerializer.AddRaw "/Resources <<" & vbCrLf
-
-    'mSerializer.AddRaw "/Font <<" & vbCrLf
-    
-    'mSerializer.AddRaw "/F1 " & mFontObject & " 0 R" & vbCrLf
-    
-    'mSerializer.AddRaw ">>" & vbCrLf
-    
-'    If mImageObject > 0 Then
-'        mSerializer.AddRaw "/XObject <<"
-'        mSerializer.AddRaw "/Im1 " & mImageObject & " 0 R"
-'        mSerializer.AddRaw ">>"
-'    End If
-'
-''    If Doc.ImageCount > 0 Then
-''
-''        Dim I As Long
-''        Dim Img As PdfImage
-''
-''        mSerializer.AddRaw "/XObject <<"
-''
-''        For I = 1 To Doc.ImageCount
-''
-''            Set Img = Doc.Image(I)
-''
-''            mSerializer.AddRaw _
-''                "/" & Img.Alias & " " _
-''                & mNumbers.ImageObject(I) _
-''                & " 0 R"
-''
-''        Next
-''
-''        mSerializer.AddRaw ">>"
-''
-''    End If
-''
-    
-'    mSerializer.AddRaw ">>" & vbCrLf
-
     WriteResources Doc
     
     mSerializer.DictionaryEnd
@@ -255,7 +224,6 @@ End Sub
 '----------------------------------------------------------
 ' Objekt 4 : Seiteninhalt
 '----------------------------------------------------------
-'Private Sub WriteContent(ByVal Doc As PdfDocument)
 Private Sub WriteContent( _
         ByVal Page As PdfPage, _
         ByVal Obj As PdfPageObjects)
@@ -263,13 +231,10 @@ Private Sub WriteContent( _
     Dim Builder As New PdfContentBuilder
     Dim Inhalt As String
 
-    'Inhalt = Builder.Build(Doc.Page(1).Canvas)
     Inhalt = Builder.Build(Page.Canvas)
 
-    'BeginObject mContentObject, CLng(potContent)
     BeginObject Obj.ContentObject, CLng(potContent)
     
-    'mSerializer.BeginStream Len(Inhalt)
     mSerializer.DictionaryBegin
 
     mSerializer.AddInteger "Length", Len(Inhalt)
@@ -290,19 +255,11 @@ Private Sub BeginObject( _
         ByVal Number As Long, _
         ByVal Kind As PdfObjectType)
 
-    mIndex.Add Number, _
-               mBuffer.Position, _
-               Kind
+    mIndex.Add Number, mBuffer.Position, Kind
 
     mSerializer.BeginObject Number
 
 End Sub
-
-Private Function Pad10(ByVal Value As Long) As String
-
-    Pad10 = Right$("0000000000" & CStr(Value), 10)
-
-End Function
 
 '---------------------------------------------------------
 ' Trailer schreiben
@@ -348,8 +305,7 @@ Private Sub WriteXRef()
 
         mSerializer.AddRaw _
             Right$("0000000000" & CStr(mIndex.Position(I)), 10) _
-            & " 00000 n " _
-            & vbCrLf
+            & " 00000 n " & vbCrLf
 
     Next I
 
@@ -358,10 +314,8 @@ End Sub
 '---------------------------------------------------------
 ' Objekt 5 : Standard-Schrift (Helvetica)
 '---------------------------------------------------------
-'Private Sub WriteFont(ByVal Doc As PdfDocument)
 Private Sub WriteFont(ByVal Font As PdfFont)
 
-    'BeginObject mFontObject, CLng(potFont)
     BeginObject Font.ObjectNumber, CLng(potFont)
 
     mSerializer.DictionaryBegin
@@ -370,8 +324,9 @@ Private Sub WriteFont(ByVal Font As PdfFont)
 
     mSerializer.AddName "Subtype", "/Type1"
 
-    'mSerializer.AddName "BaseFont", "/" & Doc.DefaultFont.Name
-    mSerializer.AddName "BaseFont", "/" & Font.Name
+    mSerializer.AddName "BaseFont", "/" & Font.BaseFontName
+    
+    mSerializer.AddName "Encoding", "/WinAnsiEncoding"
     
     mSerializer.DictionaryEnd
 
@@ -395,25 +350,14 @@ Private Sub WriteImage(ByVal Img As PdfImage)
     mSerializer.AddInteger "Height", Img.Height
     
     Select Case Img.Components
-    
-    Case 1
-    
-        mSerializer.AddName "ColorSpace", "/DeviceGray"
-    
-    Case 3
-    
-        mSerializer.AddName "ColorSpace", "/DeviceRGB"
-    
-    Case 4
-    
-        mSerializer.AddName "ColorSpace", "/DeviceCMYK"
-    
-    Case Else
-    
-        Err.Raise vbObjectError + 1001, _
-                  "PdfWriter", _
-                  "Unbekannter JPEG-Farbraum."
-    
+        Case 1
+            mSerializer.AddName "ColorSpace", "/DeviceGray"
+        Case 3
+            mSerializer.AddName "ColorSpace", "/DeviceRGB"
+        Case 4
+            mSerializer.AddName "ColorSpace", "/DeviceCMYK"
+        Case Else
+            Err.Raise vbObjectError + 1001, "PdfWriter", "Unbekannter JPEG-Farbraum"
     End Select
 
     mSerializer.AddInteger "BitsPerComponent", 8
@@ -446,7 +390,6 @@ End Sub
 '---------------------------------------------------------
 ' Ressourcen einer PDF-Seite schreiben
 '---------------------------------------------------------
-'Private Sub WriteResources()
 Private Sub WriteResources(ByVal Doc As PdfDocument)
 
     mSerializer.AddRaw "/Resources <<" & vbCrLf
@@ -464,8 +407,7 @@ Private Sub WriteResources(ByVal Doc As PdfDocument)
         Set F = Doc.Font(I)
     
         mSerializer.AddRaw _
-            "/" & F.Alias & _
-            " " & F.ObjectNumber & _
+            "/" & F.Alias & " " & F.ObjectNumber & _
             " 0 R" & vbCrLf
     
     Next
@@ -486,8 +428,7 @@ Private Sub WriteResources(ByVal Doc As PdfDocument)
             Set Img = Doc.Image(I)
     
             mSerializer.AddRaw _
-                "/" & Img.Alias & _
-                " " & Img.ObjectNumber & _
+                "/" & Img.Alias & " " & Img.ObjectNumber & _
                 " 0 R" & vbCrLf
     
         Next

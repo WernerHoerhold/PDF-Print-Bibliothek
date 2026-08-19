@@ -13,12 +13,19 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfObjectIndex
-' Aufgabe....: Verwaltet alle PDF-Objekte
+'===============================================================
+' KLASSE......: PdfObjectIndex
+' KATEGORIE...: B - UNTERSTÜTZUNGSKLASSE
+' VERSION.....: 0.6.0
 '
-' Version....: 0.6.0
-'=========================================================
+' BESCHREIBUNG:
+' Verwaltet alle PDF-Objekte und deren Positionen.
+' Diese Klasse führt ein Verzeichnis aller Objekte
+' für die Cross-Reference-Tabelle (XRef).
+'
+' VERWENDUNG: Intern durch PdfWriter
+' AUTOR: Kapp Niles GmbH & Co, KG
+'===============================================================
 
 Private mObjects As Collection
 

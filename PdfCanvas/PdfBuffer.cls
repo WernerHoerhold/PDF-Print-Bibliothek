@@ -13,17 +13,24 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfBuffer
-' Aufgabe....: Puffer f¸r den kompletten PDF-Inhalt
+'===============================================================
+' KLASSE......: PdfBuffer
+' KATEGORIE...: B - UNTERST√úTZUNGSKLASSE
+' VERSION.....: 0.6.0
 '
-' Version....: 0.6.0
-'=========================================================
+' BESCHREIBUNG:
+' Puffer f√ºr den kompletten PDF-Inhalt. Diese Klasse verwaltet
+' die PDF-Datei im Speicher als String und bietet Methoden
+' zum Hinzuf√ºgen von Text und zur Positionsverwaltung.
+'
+' VERWENDUNG: Intern durch PdfSerializer und PdfWriter
+' AUTOR: Kapp Niles GmbH & Co, KG
+'===============================================================
 
 Private mText As String
 
 '---------------------------------------------------------
-' Puffer lˆschen
+' Puffer l√∂schen
 '---------------------------------------------------------
 Public Sub Clear()
 
@@ -32,7 +39,7 @@ Public Sub Clear()
 End Sub
 
 '---------------------------------------------------------
-' Text anh‰ngen
+' Text anh√§ngen
 '---------------------------------------------------------
 Public Sub Add(ByVal Text As String)
 
@@ -41,7 +48,7 @@ Public Sub Add(ByVal Text As String)
 End Sub
 
 '---------------------------------------------------------
-' Zeile anh‰ngen (CR/LF)
+' Zeile anh√§ngen (CR/LF)
 '---------------------------------------------------------
 Public Sub AddLine(ByVal Text As String)
 
@@ -59,7 +66,7 @@ Public Property Get Text() As String
 End Property
 
 '---------------------------------------------------------
-' Aktuelle L‰nge
+' Aktuelle L√§nge
 '---------------------------------------------------------
 Public Property Get Length() As Long
 
@@ -77,7 +84,7 @@ Public Property Get Position() As Long
 End Property
 
 '---------------------------------------------------------
-' Ein Byte an den Puffer anh‰ngen
+' Ein Byte an den Puffer anh√§ngen
 '---------------------------------------------------------
 Public Sub AppendByte(ByVal Value As Byte)
 

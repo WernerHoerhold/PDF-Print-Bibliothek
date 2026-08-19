@@ -13,21 +13,41 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'=========================================================
-' Klasse.....: PdfContentBuilder
-' Aufgabe....: Erzeugt den PDF-Content-Stream
+'===============================================================
+' KLASSE......: PdfContentBuilder
+' KATEGORIE...: A - HAUPTKLASSE (Content-Stream Erstellung)
+' VERSION.....: 0.6.0
 '
-' Version....: 0.6.0
-'=========================================================
+' BESCHREIBUNG:
+' Erstellt den PDF-Content-Stream aus den Zeichenbefehlen.
+' Diese Klasse wandelt die Canvas-Befehle (DrawLine, DrawText, etc.)
+' in PDF-Operatoren um.
+'
+' PDF-OPERATOREN:
+' - "m" / "l" / "S": Linien (moveto, lineto, stroke)
+' - "BT" / "ET": Text-Block (begintext, endtext)
+' - "Tj": Text ausgeben
+' - "re" / "f" / "S" / "B": Rechtecke (rectangle, fill, stroke, fillstroke)
+' - "Do": Bild ausgeben
+'
+' VERWENDUNG: Intern durch PdfWriter
+'===============================================================
 
 Dim F As New PdfFormat
 Dim Col As New PdfColor
 Dim Geo As New PdfGeometry
 
+'---------------------------------------------------------------
+' METHODE: Build
+' PARAMETER: Canvas (PdfCanvas2D) - Die zu konvertierendde Zeichenfläche
+' RÜCKGABE: String - PDF-Content-Stream
+' BESCHREIBUNG: Konvertiert alle Canvas-Befehle in PDF-Operatoren
+'---------------------------------------------------------------
 Public Function Build(ByVal Canvas As PdfCanvas2D) As String
 
     Dim Cmd As Object
     Dim S As String
+    Dim Enc As New PdfEncoding
 
     For Each Cmd In Canvas.Commands
 
@@ -50,7 +70,7 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
                     & "/" & Cmd.State.Text.Font.Alias & " " & F.Number(Cmd.State.Text.Size) & " Tf" & vbCrLf _
                     & F.Number(Cmd.X) & " " _
                     & F.Number(Cmd.Y) & " Td" & vbCrLf _
-                    & "(" & EscapeText(Cmd.Text) & ") Tj" & vbCrLf _
+                    & "(" & Enc.EncodePdfString(Cmd.Text) & ") Tj" & vbCrLf _
                     & "ET" & vbCrLf
                     
             Case "PdfCmdRectangle"
@@ -93,7 +113,6 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
                 End If
                     
             Case "PdfCmdPolyline"
-            
                     
                 S = S _
                     & BuildPenCommands(Cmd.State.Pen) _
@@ -114,7 +133,6 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
                 ElseIf Cmd.Fill Then
                     S = S & "f" & vbCrLf
                 End If
-                    
                     
             Case "PdfCmdImage"
 
@@ -139,19 +157,6 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
 
 End Function
 
-
-'---------------------------------------------------------
-' Text f�r PDF maskieren
-'---------------------------------------------------------
-Private Function EscapeText(ByVal Text As String) As String
-
-    Text = Replace$(Text, "\", "\\")
-    Text = Replace$(Text, "(", "\(")
-    Text = Replace$(Text, ")", "\)")
-
-    EscapeText = Text
-
-End Function
 
 Private Function EnsureCrLf(ByVal Text As String) As String
 
@@ -198,11 +203,7 @@ Private Function BuildPenCommands(ByVal Pen As PdfPen) As String
 
     Next
 
-    S = S & "] "
-
-    S = S & F.Number(Pen.DashPhase)
-
-    S = S & " d" & vbCrLf
+    S = S & "] " & F.Number(Pen.DashPhase) & " d" & vbCrLf
 
     'Farbe
     S = S & Col.ToPdfRGB(Pen.Color) & " RG" & vbCrLf
@@ -210,3 +211,4 @@ Private Function BuildPenCommands(ByVal Pen As PdfPen) As String
     BuildPenCommands = S
 
 End Function
+

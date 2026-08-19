@@ -47,12 +47,14 @@ End Property
 Public Function Clone() As PdfGraphicsState
 
     Dim GS As PdfGraphicsState
-
     Set GS = New PdfGraphicsState
-
+    Dim F As PdfFont
+    Set F = New PdfFont
+    
     GS.Pen.Assign mPen
     
-    Set GS.Text.Font = mText.Font
+    F.Assign mText.Font
+    Set GS.Text.Font = F
     
     GS.Text.Size = mText.Size
     GS.Text.Color = mText.Color
