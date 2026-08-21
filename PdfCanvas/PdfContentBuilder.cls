@@ -16,7 +16,7 @@ Option Explicit
 '===============================================================
 ' KLASSE......: PdfContentBuilder
 ' KATEGORIE...: A - HAUPTKLASSE (Content-Stream Erstellung)
-' VERSION.....: 0.6.0
+' VERSION.....: 0.7.0 (mit Rotationsunterstützung)
 '
 ' BESCHREIBUNG:
 ' Erstellt den PDF-Content-Stream aus den Zeichenbefehlen.
@@ -27,8 +27,10 @@ Option Explicit
 ' - "m" / "l" / "S": Linien (moveto, lineto, stroke)
 ' - "BT" / "ET": Text-Block (begintext, endtext)
 ' - "Tj": Text ausgeben
+' - "Tm": Text-Matrix (mit Rotation)
 ' - "re" / "f" / "S" / "B": Rechtecke (rectangle, fill, stroke, fillstroke)
 ' - "Do": Bild ausgeben
+' - "q" / "Q": Save/Restore Graphics State
 '
 ' VERWENDUNG: Intern durch PdfWriter
 '===============================================================
@@ -64,14 +66,12 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
   
             Case "PdfCmdText"
             
-                S = S _
-                    & Col.ToPdfRGB(Cmd.State.Text.Color) & " rg" & vbCrLf _
-                    & "BT" & vbCrLf _
-                    & "/" & Cmd.State.Text.Font.Alias & " " & F.Number(Cmd.State.Text.Size) & " Tf" & vbCrLf _
-                    & F.Number(Cmd.X) & " " _
-                    & F.Number(Cmd.Y) & " Td" & vbCrLf _
-                    & "(" & Enc.EncodePdfString(Cmd.Text) & ") Tj" & vbCrLf _
-                    & "ET" & vbCrLf
+                'Prüfe ob Text rotiert werden soll
+                If Cmd.Angle <> 0 Then
+                    S = S & BuildRotatedText(Cmd, Enc)
+                Else
+                    S = S & BuildNormalText(Cmd, Enc)
+                End If
                     
             Case "PdfCmdRectangle"
             
@@ -157,6 +157,66 @@ Public Function Build(ByVal Canvas As PdfCanvas2D) As String
 
 End Function
 
+'---------------------------------------------------------------
+' METHODE: BuildNormalText
+' BESCHREIBUNG: Erstellt PDF-Befehle für normalen (nicht rotierten) Text
+'---------------------------------------------------------------
+Private Function BuildNormalText(ByVal Cmd As Object, ByVal Enc As PdfEncoding) As String
+
+    Dim S As String
+
+    S = Col.ToPdfRGB(Cmd.State.Text.Color) & " rg" & vbCrLf _
+        & "BT" & vbCrLf _
+        & "/" & Cmd.State.Text.Font.Alias & " " & F.Number(Cmd.State.Text.Size) & " Tf" & vbCrLf _
+        & F.Number(Cmd.X) & " " _
+        & F.Number(Cmd.Y) & " Td" & vbCrLf _
+        & "(" & Enc.EncodePdfString(Cmd.Text) & ") Tj" & vbCrLf _
+        & "ET" & vbCrLf
+
+    BuildNormalText = S
+
+End Function
+
+'---------------------------------------------------------------
+' METHODE: BuildRotatedText
+' BESCHREIBUNG: Erstellt PDF-Befehle für rotierten Text mit
+'               Transformationsmatrix
+' PARAMETER: Cmd - PdfCmdText Objekt mit Rotation
+'            Enc - PDF Encoder
+'---------------------------------------------------------------
+Private Function BuildRotatedText(ByVal Cmd As Object, ByVal Enc As PdfEncoding) As String
+
+    Dim S As String
+    Dim AngleRad As Double
+    Dim CosAngle As Double
+    Dim SinAngle As Double
+    Const PI As Double = 3.14159265358979
+    
+    'Winkel von Grad zu Radiant konvertieren
+    AngleRad = Cmd.Angle * PI / 180#
+    
+    'cos und sin berechnen
+    CosAngle = Cos(AngleRad)
+    SinAngle = Sin(AngleRad)
+
+    'Rotierter Text mit Transformationsmatrix
+    'q = Save graphics state
+    'Tm = Text-Matrix mit Rotation: [cos sin -sin cos x y]
+    'ET = End text
+    'Q = Restore graphics state
+    
+    S = Col.ToPdfRGB(Cmd.State.Text.Color) & " rg" & vbCrLf _
+        & "q" & vbCrLf _
+        & "BT" & vbCrLf _
+        & "/" & Cmd.State.Text.Font.Alias & " " & F.Number(Cmd.State.Text.Size) & " Tf" & vbCrLf _
+        & F.Matrix(CosAngle, SinAngle, -SinAngle, CosAngle, Cmd.X, Cmd.Y) & " Tm" & vbCrLf _
+        & "(" & Enc.EncodePdfString(Cmd.Text) & ") Tj" & vbCrLf _
+        & "ET" & vbCrLf _
+        & "Q" & vbCrLf
+
+    BuildRotatedText = S
+
+End Function
 
 Private Function EnsureCrLf(ByVal Text As String) As String
 
