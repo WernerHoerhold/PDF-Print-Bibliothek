@@ -17,21 +17,39 @@ Option Explicit
 ' Klasse.....: PdfFormat
 ' Aufgabe....: Formatierung von PDF-Werten
 '
-' Version....: 0.7.0
+' Version....: 0.7.1 (mit verbesserter Exponentialbehandlung)
 '=========================================================
 
 '---------------------------------------------------------
 ' Zahl im PDF-Format
-' (immer Dezimalpunkt)
+' (immer Dezimalpunkt, keine Exponentialdarstellung)
 '---------------------------------------------------------
 Public Function Number(ByVal Value As Double) As String
 
     Dim S As String
+    Dim DecimalPos As Long
 
-    S = Trim$(Str$(Value))
+    'Wenn Wert 0 ist, direkt zurückgeben
+    If Value = 0 Then
+        Number = "0"
+        Exit Function
+    End If
 
+    'Mit Format$ arbeiten um Exponentialdarstellung zu vermeiden
+    'Format mit fester Dezimalstelle (bis zu 6 Dezimalstellen)
+    S = Format$(Value, "0.######")
+
+    'Komma durch Punkt ersetzen (für deutsche Lokalisierung)
     If InStr(S, ",") > 0 Then
         S = Replace$(S, ",", ".")
+    End If
+
+    'Führende Null entfernen wenn nötig (z.B. ".5" statt "0.5")
+    'Aber nur wenn Wert zwischen -1 und 1 liegt
+    If Left$(S, 2) = "0." Then
+        'Bleibt "0.xxx"
+    ElseIf Left$(S, 3) = "-0." Then
+        'Bleibt "-0.xxx"
     End If
 
     Number = S
@@ -40,6 +58,7 @@ End Function
 
 '---------------------------------------------------------
 ' PDF-Transformationsmatrix
+' (garantiert keine Exponentialdarstellung)
 '---------------------------------------------------------
 Public Function Matrix( _
         ByVal A As Double, _
