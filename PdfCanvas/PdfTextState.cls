@@ -17,12 +17,13 @@ Option Explicit
 ' Klasse.....: PdfTextState
 ' Aufgabe....: Beschreibt den aktuellen Textzustand
 '
-' Version....: 0.9.1
+' Version....: 0.9.2 (mit Rotationsunterst√ºtzung)
 '=========================================================
 
 Private mFont As PdfFont
 Private mSize As Double
 Private mColor As OLE_COLOR
+Private mAngle As Double
 
 Private Sub Class_Initialize()
 
@@ -34,6 +35,7 @@ Private Sub Class_Initialize()
 
     mSize = 12
     mColor = vbBlack
+    mAngle = 0
 
 End Sub
 
@@ -54,7 +56,7 @@ End Property
 
 
 '---------------------------------------------------------
-' Schriftgrˆﬂe
+' Schriftgr√∂√üe
 '---------------------------------------------------------
 Public Property Get Size() As Double
 
@@ -82,5 +84,20 @@ End Property
 Public Property Let Color(ByVal Value As OLE_COLOR)
 
     mColor = Value
+
+End Property
+
+'---------------------------------------------------------
+' Rotationswinkel (in Grad, 0-360)
+'---------------------------------------------------------
+Public Property Get Angle() As Double
+
+    Angle = mAngle
+
+End Property
+
+Public Property Let Angle(ByVal Value As Double)
+
+    mAngle = Value
 
 End Property
