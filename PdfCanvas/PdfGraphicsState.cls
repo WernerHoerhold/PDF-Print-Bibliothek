@@ -17,7 +17,7 @@ Option Explicit
 ' Klasse.....: PdfGraphicsState
 ' Aufgabe....: Aktueller Zeichenzustand
 '
-' Version....: 0.9.0
+' Version....: 0.9.1
 '=========================================================
 
 Private mPen As PdfPen
@@ -58,6 +58,7 @@ Public Function Clone() As PdfGraphicsState
     
     GS.Text.Size = mText.Size
     GS.Text.Color = mText.Color
+    GS.Text.Angle = mText.Angle
     GS.Brush.Color = mBrush.Color
 
     Set Clone = GS
@@ -74,7 +75,7 @@ Public Property Get Text() As PdfTextState
 End Property
 
 '---------------------------------------------------------
-' Füllpinsel
+' FÃ¼llpinsel
 '---------------------------------------------------------
 Public Property Get Brush() As PdfBrush
 
