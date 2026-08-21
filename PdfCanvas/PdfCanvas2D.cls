@@ -16,7 +16,7 @@ Option Explicit
 '===============================================================
 ' KLASSE......: PdfCanvas2D
 ' KATEGORIE...: A - HAUPTKLASSE (Zeichenfläche)
-' VERSION.....: 1.0
+' VERSION.....: 1.1 (mit Rotationsunterstützung)
 '
 ' BESCHREIBUNG:
 ' Die 2D-Zeichenfläche einer PDF-Seite. Sie sammelt alle
@@ -127,6 +127,34 @@ Public Sub DrawText(ByVal X As Double, ByVal Y As Double, _
     Cmd.X = X
     Cmd.Y = Y
     Cmd.Text = Text
+    Cmd.Angle = 0
+
+    mCommands.Add Cmd
+
+End Sub
+
+'---------------------------------------------------------
+' METHODE: DrawTextRotated
+' PARAMETER:
+'   - X, Y (Double): Position des Texts
+'   - Text (String): Der zu zeichnende Text
+'   - AngleDegrees (Double): Rotationswinkel in Grad
+' BESCHREIBUNG: Zeichnet Text an der angegebenen Position
+'               mit Rotation um einen beliebigen Winkel.
+'               Der Text wird um die Startposition (X, Y) rotiert.
+'---------------------------------------------------------
+Public Sub DrawTextRotated(ByVal X As Double, ByVal Y As Double, _
+                           ByVal Text As String, ByVal AngleDegrees As Double)
+
+    Dim Cmd As PdfCmdText
+    
+    Set Cmd = New PdfCmdText
+    Set Cmd.State = mState.Clone
+
+    Cmd.X = X
+    Cmd.Y = Y
+    Cmd.Text = Text
+    Cmd.Angle = AngleDegrees
 
     mCommands.Add Cmd
 
