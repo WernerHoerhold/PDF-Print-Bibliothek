@@ -17,13 +17,14 @@ Option Explicit
 ' Klasse.....: PdfCmdText
 ' Aufgabe....: Textbefehl
 '
-' Version....: 0.8.0
+' Version....: 0.8.1 (mit Rotationsunterstützung)
 '=========================================================
 
 Private mX As Double
 Private mY As Double
 Private mText As String
 Private mState As PdfGraphicsState
+Private mAngle As Double
 
 Public Property Get X() As Double
     X = mX
@@ -58,5 +59,20 @@ End Property
 Public Property Set State(ByVal Value As PdfGraphicsState)
 
     Set mState = Value
+
+End Property
+
+'---------------------------------------------------------
+' Rotationswinkel (in Grad, 0-360)
+'---------------------------------------------------------
+Public Property Get Angle() As Double
+
+    Angle = mAngle
+
+End Property
+
+Public Property Let Angle(ByVal Value As Double)
+
+    mAngle = Value
 
 End Property
